@@ -1,3 +1,5 @@
 .idea
 /WARP.md
 /v2/docs/
+__pycache__
+/v2/outputs/

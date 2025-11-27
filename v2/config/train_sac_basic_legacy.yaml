@@ -1,0 +1,33 @@
+# Example training config for v2 mesh_rl.
+# This mirrors the legacy RL_Mesh.py defaults for a single-stage SAC
+# run, but can be freely modified by the user.
+
+algo: sac
+# Domain key under v2/data/domains
+domain: basic
+
+# Total training timesteps (per curriculum stage)
+total_timesteps: 4000000
+
+# RNG seed (used for SB3 and internal env seeding)
+seed: 999
+
+# Experiment version tag (used in log/model paths)
+version: "77"
+
+# Device preference: auto/cpu/cuda
+device: auto
+
+# Algorithm-specific hyperparameters passed directly to
+# stable_baselines3.SAC(...). Defaults here reproduce the values that
+# were hard-coded in rl/baselines/RL_Mesh.py.
+algo_kwargs:
+  learning_rate: 0.0003
+  learning_starts: 10000
+  batch_size: 100
+  # Legacy script used gamma=0.5 via `parameter_tuning`; you can change
+  # it here or remove this key to fall back to SB3's default.
+  gamma: 0.5
+  policy_kwargs:
+    activation_fn: relu
+    net_arch: [128, 128, 128]
