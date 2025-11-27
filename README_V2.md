@@ -93,10 +93,13 @@ From the **repository root**, ensure `v2/src` is on `PYTHONPATH` so that
 Python can import the local `mesh_rl` package:
 
 ```bash
-cd D:/Projects/ReinforcementLearning4MeshGeneration
+# From wherever you cloned the repo
+git clone <this-repo-url>
+cd ReinforcementLearning4MeshGeneration
 conda activate RLMeshV2
-# On PowerShell (adjust the path if your repo lives elsewhere)
-$env:PYTHONPATH = "D:/Projects/ReinforcementLearning4MeshGeneration/v2/src"
+
+# On PowerShell (from the repo root)
+$env:PYTHONPATH = "$PWD/v2/src"
 ```
 
 The training CLI supports **two ways** to specify hyperparameters:
