@@ -16,6 +16,7 @@ from ..algorithms import build_model
 from ..config import RLConfig, PathConfig, make_default_paths
 from ..envs.boundary_env import BoudaryEnv
 from ..paths import algo_log_dir, algo_model_path, algo_tensorboard_dir, resolve_domain_path
+from .callbacks import MeshEvalCallback
 
 
 def train_single_env(
@@ -56,9 +57,20 @@ def train_single_env(
             raise ValueError("Either 'paths' or 'project_root' must be provided.")
         paths = make_default_paths(project_root)
 
-    # Resolve domain path and construct environment
+    # Resolve domain path and construct environment. We mirror the
+    # legacy pipeline by using a separate evaluation environment with
+    # the same domain.
     domain_file = resolve_domain_path(paths, cfg.domain)
-    env = BoudaryEnv.from_domain_file(str(domain_file)) if hasattr(BoudaryEnv, "from_domain_file") else BoudaryEnv(domain_file)
+    env = (
+        BoudaryEnv.from_domain_file(str(domain_file))
+        if hasattr(BoudaryEnv, "from_domain_file")
+        else BoudaryEnv(domain_file)
+    )
+    eval_env = (
+        BoudaryEnv.from_domain_file(str(domain_file))
+        if hasattr(BoudaryEnv, "from_domain_file")
+        else BoudaryEnv(domain_file)
+    )
 
     # Determine log / tb / model locations. When ``stage_index`` is
     # provided (curriculum training), we scope outputs under a per-stage
@@ -88,12 +100,34 @@ def train_single_env(
     else:
         model = build_model(cfg.algo, env, cfg, tensorboard_log=str(tb_dir))
 
-    # Train with a progress bar by default. If an external callback is
-    # provided, combine it with ProgressBarCallback via CallbackList.
+    # Build an evaluation callback that mirrors the legacy pipeline
+    # behaviour:
+    #
+    # * periodically evaluate on a separate env
+    # * save the best model under ``best_model``
+    # * save numbered checkpoints at each evaluation
+    eval_cb = MeshEvalCallback(
+        eval_env=eval_env,
+        log_dir=log_dir,
+        best_model_dir=log_dir,
+        eval_freq=cfg.eval_freq,
+        n_eval_episodes=cfg.eval_episodes,
+        deterministic=cfg.eval_deterministic,
+        render=cfg.eval_render,
+        verbose=1,
+    )
+
+    callbacks: list[BaseCallback] = []
     if callback is not None:
-        cb: BaseCallback | CallbackList = CallbackList([callback, ProgressBarCallback()])
+        callbacks.append(callback)
+    callbacks.append(eval_cb)
+    callbacks.append(ProgressBarCallback())
+
+    cb: BaseCallback
+    if len(callbacks) == 1:
+        cb = callbacks[0]
     else:
-        cb = ProgressBarCallback()
+        cb = CallbackList(callbacks)
 
     model.learn(total_timesteps=cfg.total_timesteps, callback=cb)
 

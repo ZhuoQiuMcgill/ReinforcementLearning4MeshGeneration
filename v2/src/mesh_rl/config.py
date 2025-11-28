@@ -40,6 +40,13 @@ class RLConfig:
     # settings (see ``mesh_rl.algorithms.sb3_algos``), but callers can
     # override any of them here.
     algo_kwargs: Dict[str, Any] = field(default_factory=dict)
+    # Evaluation settings mirroring the legacy ``CustomCallback``
+    # defaults in ``RL_Mesh.mesh_learning``. These control how often we
+    # evaluate during training and how we select ``best_model``.
+    eval_freq: int = 1000
+    eval_episodes: int = 1
+    eval_deterministic: bool = False
+    eval_render: bool = False
 
 
 @dataclass

@@ -186,6 +186,12 @@ For the example above (SAC, `version=my_experiment`), v2 will write to:
   The underlying Stable-Baselines3 implementation will actually create
   `mesh.zip` at that location.
 
+  During training, an evaluation callback also writes:
+
+  - `best_model.zip` – the best model so far according to periodic
+    evaluation on a separate env (mirrors the legacy pipeline's
+    `best_model`).
+
 - TensorBoard logs:
 
   ```text

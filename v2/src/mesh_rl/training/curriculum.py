@@ -64,7 +64,9 @@ def train_curriculum(
     last_model: Optional[Path] = None
 
     for stage in stages:
-        # Stage-specific config
+        # Stage-specific config. We propagate algorithm hyperparameters and
+        # evaluation settings so that all stages share the same RL setup,
+        # differing only in domain and timesteps.
         stage_cfg = RLConfig(
             algo=cfg.algo,
             domain=stage.domain,
@@ -72,6 +74,11 @@ def train_curriculum(
             seed=cfg.seed,
             version=cfg.version,
             device=cfg.device,
+            algo_kwargs=cfg.algo_kwargs,
+            eval_freq=cfg.eval_freq,
+            eval_episodes=cfg.eval_episodes,
+            eval_deterministic=cfg.eval_deterministic,
+            eval_render=cfg.eval_render,
         )
 
         # Previous stage model (if any)
